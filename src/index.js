@@ -2,24 +2,86 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-class Square extends React.Component {
-  render() {
+// Square class replaced by equivalent function component
+// class Square extends React.Component {
+//     // constructor(props) {
+//     //     super(props);
+//     //     this.state = {
+//     //         value: null,
+//     //     };
+//     // }
+//     render() {
+//       return (
+//         <button
+//             className="square"
+//             onClick={() => {
+//                 this.props.onClick();
+//                 console.log('SQUARE[' + this.props.idx + '] click');
+//             }}>
+//           {this.props.value}
+//         </button>
+//       );
+//     }
+//    }
+function Square(props) {
     return (
-      <button className="square">
-        {/* TODO */}
-      </button>
+        <button
+            className="square"
+            onClick={() => {
+                console.log('SQUARE[' + props.idx + '] click');
+                props.onClick();
+            }}>
+          {props.value}
+        </button>
     );
-  }
 }
 
 class Board extends React.Component {
-  renderSquare(i) {
-    return <Square />;
-  }
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            squares: Array(9).fill(null),
+            xIsNext: true,
+        }
+    }
+
+    handleClick(i) {
+        const squares_copy = this.state.squares.slice();
+    if (calculateWinner(squares_copy)) {
+        console.log('Game over!');
+        return;
+    } else if (squares_copy[i]) {
+            console.log('try again, square ' + i + ' already clicked');
+            return;
+
+        } else {
+            console.log('BOARD click: ' + i);
+            squares_copy[i] = this.state.xIsNext ? 'X' : 'O';
+            this.setState({
+                squares: squares_copy,
+                xIsNext: !this.state.xIsNext
+            });
+        }
+    }
+
+    renderSquare(i) {
+        return <Square
+            idx={i}
+            value={this.state.squares[i]}
+            onClick={() => this.handleClick(i)}
+        />;
+    }
 
   render() {
-    const status = 'Next player: X';
-
+    const winner = calculateWinner(this.state.squares);
+    let status;
+    if (winner) {
+        status = 'Winner:' + winner;
+        console.log('Winner:' + winner);
+    } else {
+        status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+    } 
     return (
       <div>
         <div className="status">{status}</div>
@@ -59,6 +121,27 @@ class Game extends React.Component {
   }
 }
 
+function calculateWinner(squares) {
+    const winning_lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    for (let i = 0; i < winning_lines.length; i++) {
+      const [a, b, c] = winning_lines[i];
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return squares[a];
+      }
+    }
+    return null;
+  }
+
+  
 // ========================================
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
